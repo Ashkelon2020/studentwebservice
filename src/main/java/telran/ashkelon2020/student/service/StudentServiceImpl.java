@@ -4,7 +4,7 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import telran.ashkelon2020.student.dao.StudentRepository;
+import telran.ashkelon2020.student.dao.StudentRepositoryMongoDB;
 import telran.ashkelon2020.student.dto.ScoreDto;
 import telran.ashkelon2020.student.dto.StudentDto;
 import telran.ashkelon2020.student.dto.StudentResponseDto;
@@ -16,35 +16,37 @@ import telran.ashkelon2020.student.model.Student;
 public class StudentServiceImpl implements StudentService {
 	
 	@Autowired
-	StudentRepository studentRepository;
+	StudentRepositoryMongoDB studentRepository;
 	
 	@Autowired
 	ModelMapper modelMapper;
 
 	@Override
 	public boolean addStudent(StudentDto studentDto) {
-		Student student = new Student(studentDto.getId(), studentDto.getName(), studentDto.getPassword());
-		return studentRepository.addStudent(student);
-	}
-
-	@Override
-	public StudentResponseDto findStudent(int id) {
-		Student student = studentRepository.findStudentById(id);
-		if (student == null) {
-			throw new StudentNotFoundException(id);
+		//Student student = new Student(studentDto.getId(), studentDto.getName(), studentDto.getPassword());
+		Student student = modelMapper.map(studentDto, Student.class);
+		if (studentRepository.existsById(student.getId())) {
+			return false;
 		}else {
-			return convertStudentToStudentResponseDto(student);
+			studentRepository.save(student);
+			return true;
 		}
 		
 	}
 
 	@Override
+	public StudentResponseDto findStudent(int id) {
+		Student student = studentRepository.findById(id).orElseThrow(() -> new StudentNotFoundException(id));
+		//return convertStudentToStudentResponseDto(student);
+		return modelMapper.map(student, StudentResponseDto.class);	
+	}
+
+	@Override
 	public StudentResponseDto deleteStudent(int id) {
-		Student student = studentRepository.deleteStudent(id);
-		if (student == null) {
-			throw new StudentNotFoundException(id);
-		}
-		return convertStudentToStudentResponseDto(student);
+		Student student = studentRepository.findById(id).orElseThrow(() -> new StudentNotFoundException(id));
+		studentRepository.delete(student);
+		//return convertStudentToStudentResponseDto(student);
+		return modelMapper.map(student, StudentResponseDto.class);
 	}
 
 	private StudentResponseDto convertStudentToStudentResponseDto(Student student) {
@@ -57,10 +59,7 @@ public class StudentServiceImpl implements StudentService {
 
 	@Override
 	public StudentDto updateStudent(int id, StudentUpdateDto studentUpdateDto) {
-		Student student = studentRepository.findStudentById(id);
-		if (student == null) {
-			throw new StudentNotFoundException(id);
-		}
+		Student student = studentRepository.findById(id).orElseThrow(() -> new StudentNotFoundException(id));
 		String name = studentUpdateDto.getName();
 		if (name == null) {
 			name = student.getName();
@@ -69,7 +68,11 @@ public class StudentServiceImpl implements StudentService {
 		if (password == null) {
 			password = student.getPassword();
 		}
-		return convertStudentToStudentDto(studentRepository.updateStudent(id, name, password));
+		//return convertStudentToStudentDto(studentRepository.updateStudent(id, name, password));
+		student.setName(name);
+		student.setPassword(password);
+		studentRepository.save(student);
+		return modelMapper.map(student, StudentDto.class);
 	}
 
 	private StudentDto convertStudentToStudentDto(Student student) {
@@ -82,11 +85,10 @@ public class StudentServiceImpl implements StudentService {
 
 	@Override
 	public boolean addScore(int id, ScoreDto scoreDto) {
-		try {
-			return studentRepository.addScore(id, scoreDto.getExamName(), scoreDto.getScore());
-		} catch (NullPointerException e) {
-			throw new StudentNotFoundException(id);
-		}
+		Student student = studentRepository.findById(id).orElseThrow(() -> new StudentNotFoundException(id));
+		boolean res = student.addScore(scoreDto.getExamName(), scoreDto.getScore());
+		studentRepository.save(student);
+		return res;
 	}
 
 }
