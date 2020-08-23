@@ -1,8 +1,14 @@
 package telran.ashkelon2020.student.service;
 
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
+
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import com.mongodb.connection.Stream;
 
 import telran.ashkelon2020.student.dao.StudentRepositoryMongoDB;
 import telran.ashkelon2020.student.dto.ScoreDto;
@@ -89,6 +95,13 @@ public class StudentServiceImpl implements StudentService {
 		boolean res = student.addScore(scoreDto.getExamName(), scoreDto.getScore());
 		studentRepository.save(student);
 		return res;
+	}
+
+	@Override
+	public List<StudentResponseDto> findStudentsByName(String name) {
+		return  studentRepository.findByNameAndIdGreaterThan(name, 2000)
+				.map(s -> modelMapper.map(s, StudentResponseDto.class))
+				.collect(Collectors.toList());
 	}
 
 }

@@ -1,5 +1,7 @@
 package telran.ashkelon2020.student.service;
 
+import java.util.List;
+
 import telran.ashkelon2020.student.dto.ScoreDto;
 import telran.ashkelon2020.student.dto.StudentDto;
 import telran.ashkelon2020.student.dto.StudentResponseDto;
@@ -15,4 +17,6 @@ public interface StudentService {
 	StudentDto updateStudent(int id, StudentUpdateDto studentUpdateDto);
 
 	boolean addScore(int id, ScoreDto scoreDto);
+	
+	List<StudentResponseDto> findStudentsByName(String name);
 }

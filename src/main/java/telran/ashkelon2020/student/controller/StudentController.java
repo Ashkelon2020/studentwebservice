@@ -62,8 +62,12 @@ public class StudentController {
 	public List<MessageDto> sendMessage(@PathVariable String message) {
 		return messagingServices.stream()
 		                  .map(s -> s.sendMessage(message))
-		                  .collect(Collectors.toList());
-		
+		                  .collect(Collectors.toList());		
+	}
+	
+	@GetMapping("/students/name/{name}")
+	public List<StudentResponseDto>findStudentsByName(@PathVariable String name) {
+		return studentService.findStudentsByName(name);
 	}
 
 }
