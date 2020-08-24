@@ -99,7 +99,19 @@ public class StudentServiceImpl implements StudentService {
 
 	@Override
 	public List<StudentResponseDto> findStudentsByName(String name) {
-		return  studentRepository.findByNameAndIdGreaterThan(name, 2000)
+		return  studentRepository.findByName(name)
+				.map(s -> modelMapper.map(s, StudentResponseDto.class))
+				.collect(Collectors.toList());
+	}
+
+	@Override
+	public long studentsQuantity(List<String> names) {
+		return studentRepository.countByNameIn(names);
+	}
+
+	@Override
+	public List<StudentResponseDto> findStudentsByExamScore(String exam, int score) {
+		return studentRepository.findByExamAndScoreGreaterThanEqual(exam, score)
 				.map(s -> modelMapper.map(s, StudentResponseDto.class))
 				.collect(Collectors.toList());
 	}

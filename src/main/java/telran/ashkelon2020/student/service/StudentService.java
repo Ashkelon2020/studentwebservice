@@ -19,4 +19,8 @@ public interface StudentService {
 	boolean addScore(int id, ScoreDto scoreDto);
 	
 	List<StudentResponseDto> findStudentsByName(String name);
+	
+	long studentsQuantity(List<String> names);
+	
+	List<StudentResponseDto> findStudentsByExamScore(String exam, int score);
 }
